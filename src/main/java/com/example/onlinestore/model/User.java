@@ -1,4 +1,4 @@
-package com.example.onlinestore.entity;
+package com.example.onlinestore.model;
 
 import java.time.LocalDateTime;
 
@@ -7,8 +7,9 @@ public class User {
     private String username;
     private String token;
     private LocalDateTime tokenExpireTime;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -39,5 +40,21 @@ public class User {
 
     public void setTokenExpireTime(LocalDateTime tokenExpireTime) {
         this.tokenExpireTime = tokenExpireTime;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 } 

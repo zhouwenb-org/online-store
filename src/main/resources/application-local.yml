@@ -1,19 +1,4 @@
-server:
-  port: 8080
-
 spring:
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
-  cloud:
-    nacos:
-      discovery:
-        enabled: ${NACOS_ENABLED:false}
-        register-enabled: ${NACOS_ENABLED:false}
-    service-registry:
-      auto-registration:
-        enabled: ${NACOS_ENABLED:false}
-  application:
-    name: online-store
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/online_store?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
@@ -45,4 +30,4 @@ service:
 admin:
   auth:
     username: admin
-    password: password
+    password: password 

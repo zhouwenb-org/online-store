@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.onlinestore.mapper.UserMapper">
+    
+    <select id="findByUsername" resultType="com.example.onlinestore.model.User">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+    
+    <update id="updateUserToken" parameterType="com.example.onlinestore.model.User">
+        UPDATE users 
+        SET token = #{token}, 
+            token_expire_time = #{tokenExpireTime},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE username = #{username}
+    </update>
+
+    <insert id="insertUser" parameterType="com.example.onlinestore.model.User">
+        INSERT INTO users (
+            username,
+            token,
+            token_expire_time,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{username},
+            #{token},
+            #{tokenExpireTime},
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+    
+</mapper> 

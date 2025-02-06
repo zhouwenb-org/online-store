@@ -1,11 +1,15 @@
 package com.example.onlinestore.mapper;
 
-import com.example.onlinestore.entity.User;
+import com.example.onlinestore.model.User;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface UserMapper {
-    @Update("UPDATE users SET token = #{token}, token_expire_time = #{tokenExpireTime} WHERE username = #{username}")
-    void updateUserToken(User user);
-} 
+    
+    User findByUsername(@Param("username") String username);
+    
+    int updateUserToken(User user);
+
+    int insertUser(User user);
+}
