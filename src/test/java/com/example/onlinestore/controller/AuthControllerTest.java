@@ -41,7 +41,7 @@ public class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void testLoginSuccess() throws Exception {
+    void whenLoginWithValidCredentials_thenReturnSuccess() throws Exception {
         // 准备测试数据
         LoginRequest request = new LoginRequest();
         request.setUsername("test");
@@ -64,7 +64,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    void testLoginFailureInEnglish() throws Exception {
+    void whenLoginFailsInEnglish_thenReturnErrorMessage() throws Exception {
         // 准备测试数据
         LoginRequest request = new LoginRequest();
         request.setUsername("test");
@@ -87,7 +87,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    void testLoginFailureInChinese() throws Exception {
+    void whenLoginFailsInChinese_thenReturnErrorMessage() throws Exception {
         // 准备测试数据
         LoginRequest request = new LoginRequest();
         request.setUsername("test");
@@ -110,7 +110,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    void testSystemError() throws Exception {
+    void whenSystemError_thenReturnLocalizedErrorMessage() throws Exception {
         // 准备测试数据
         LoginRequest request = new LoginRequest();
         request.setUsername("test");
