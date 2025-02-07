@@ -4,6 +4,8 @@ import com.example.onlinestore.context.UserContext;
 import com.example.onlinestore.model.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,9 +17,11 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("管理员权限验证切面测试")
 public class AdminAuthAspectTest {
 
     @Mock
@@ -26,10 +30,15 @@ public class AdminAuthAspectTest {
     @InjectMocks
     private AdminAuthAspect adminAuthAspect;
 
+    private static final String ADMIN_USERNAME = "admin";
+    private static final String ERROR_ACCESS_DENIED = "error.access.denied";
+    private static final String ACCESS_DENIED_MESSAGE = "访问被拒绝";
+
     @BeforeEach
     void setUp() {
-        // 设置管理员用户名
-        adminAuthAspect.adminUsername = "admin";
+        adminAuthAspect.adminUsername = ADMIN_USERNAME;
+        when(messageSource.getMessage(eq(ERROR_ACCESS_DENIED), any(), eq(LocaleContextHolder.getLocale())))
+            .thenReturn(ACCESS_DENIED_MESSAGE);
     }
 
     @AfterEach
@@ -37,52 +46,61 @@ public class AdminAuthAspectTest {
         UserContext.clear();
     }
 
-    @Test
-    void whenUserIsAdmin_thenAllowAccess() {
-        // 准备测试数据
-        User adminUser = new User();
-        adminUser.setUsername("admin");
-        UserContext.setCurrentUser(adminUser);
+    @Nested
+    @DisplayName("权限验证测试")
+    class AuthorizationTests {
+        @Test
+        @DisplayName("管理员访问成功")
+        void whenUserIsAdmin_thenAllowAccess() {
+            // 准备测试数据
+            User adminUser = new User();
+            adminUser.setUsername(ADMIN_USERNAME);
+            UserContext.setCurrentUser(adminUser);
 
-        // 执行测试
-        assertDoesNotThrow(() -> adminAuthAspect.checkAdminAuth());
-    }
+            // 执行测试
+            assertDoesNotThrow(() -> adminAuthAspect.checkAdminAuth());
+        }
 
-    @Test
-    void whenUserIsNotAdmin_thenThrowException() {
-        // 准备测试数据
-        User normalUser = new User();
-        normalUser.setUsername("user");
-        UserContext.setCurrentUser(normalUser);
+        @Test
+        @DisplayName("非管理员访问失败")
+        void whenUserIsNotAdmin_thenThrowException() {
+            // 准备测试数据
+            User normalUser = new User();
+            normalUser.setUsername("user");
+            UserContext.setCurrentUser(normalUser);
 
-        // 设置错误消息
-        when(messageSource.getMessage(eq("error.access.denied"), any(), eq(LocaleContextHolder.getLocale())))
-            .thenReturn("访问被拒绝");
+            // 执行测试
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> adminAuthAspect.checkAdminAuth()
+            );
 
-        // 执行测试
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> adminAuthAspect.checkAdminAuth()
-        );
+            // 验证结果
+            assertEquals(ACCESS_DENIED_MESSAGE, exception.getMessage());
+            verify(messageSource).getMessage(
+                eq(ERROR_ACCESS_DENIED), 
+                any(), 
+                eq(LocaleContextHolder.getLocale()));
+        }
 
-        assertEquals("访问被拒绝", exception.getMessage());
-    }
+        @Test
+        @DisplayName("未登录用户访问失败")
+        void whenUserIsNull_thenThrowException() {
+            // 准备测试数据
+            UserContext.setCurrentUser(null);
 
-    @Test
-    void whenUserIsNull_thenThrowException() {
-        // 准备测试数据
-        UserContext.setCurrentUser(null);
+            // 执行测试
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> adminAuthAspect.checkAdminAuth()
+            );
 
-        // 设置错误消息
-        when(messageSource.getMessage(eq("error.access.denied"), any(), eq(LocaleContextHolder.getLocale())))
-            .thenReturn("访问被拒绝");
-
-        // 执行测试
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> adminAuthAspect.checkAdminAuth()
-        );
-
-        assertEquals("访问被拒绝", exception.getMessage());
+            // 验证结果
+            assertEquals(ACCESS_DENIED_MESSAGE, exception.getMessage());
+            verify(messageSource).getMessage(
+                eq(ERROR_ACCESS_DENIED), 
+                any(), 
+                eq(LocaleContextHolder.getLocale()));
+        }
     }
 } 
