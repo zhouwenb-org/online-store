@@ -12,6 +12,7 @@ public class Item implements Serializable {
     private String description;
     private String image;
     private String secondareyName;
+    private String pingJia;
 
     public Long getId() {
         return id;
@@ -51,5 +52,21 @@ public class Item implements Serializable {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getSecondareyName() {
+        return secondareyName;
+    }
+
+    public void setSecondareyName(String secondareyName) {
+        this.secondareyName = secondareyName;
+    }
+
+    public String getPingJia() {
+        return pingJia;
+    }
+
+    public void setPingJia(String pingJia) {
+        this.pingJia = pingJia;
     }
 }
