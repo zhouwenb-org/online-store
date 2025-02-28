@@ -1,11 +1,12 @@
 package com.example.onlinestore.service.impl;
 
+import com.example.onlinestore.bean.User;
 import com.example.onlinestore.dto.LoginRequest;
 import com.example.onlinestore.dto.LoginResponse;
 import com.example.onlinestore.dto.PageResponse;
 import com.example.onlinestore.dto.UserPageRequest;
 import com.example.onlinestore.dto.UserVO;
-import com.example.onlinestore.model.User;
+import com.example.onlinestore.entity.UserEntity;
 import com.example.onlinestore.mapper.UserMapper;
 import com.example.onlinestore.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -100,10 +102,10 @@ public class UserServiceImpl implements UserService {
         LocalDateTime expireTime = LocalDateTime.now().plusDays(TOKEN_EXPIRE_DAYS);
 
         // 查找或创建用户
-        User user = userMapper.findByUsername(username);
+        UserEntity user = userMapper.findByUsername(username);
         if (user == null) {
             // 用户不存在，创建新用户
-            user = new User();
+            user = new UserEntity();
             user.setUsername(username);
             user.setToken(token);
             user.setTokenExpireTime(expireTime);
@@ -138,7 +140,7 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
-    private UserVO convertToVO(User user) {
+    private UserVO convertToVO(UserEntity user) {
         if (user == null) {
             return null;
         }
@@ -157,7 +159,7 @@ public class UserServiceImpl implements UserService {
         int limit = request.getPageSize();
 
         // 查询数据
-        List<User> users = userMapper.findAllWithPagination(offset, limit);
+        List<UserEntity> users = userMapper.findAllWithPagination(offset, limit);
         long total = userMapper.countTotal();
 
         // 转换为VO
@@ -184,7 +186,11 @@ public class UserServiceImpl implements UserService {
                 logger.warn("无效的token: {}", token);
                 return null;
             }
-            return objectMapper.readValue(userJson, User.class);
+            UserEntity userEntity =  objectMapper.readValue(userJson, UserEntity.class);
+            BeanCopier copier = BeanCopier.create(UserEntity.class, User.class, false);
+            User user = new User();
+            copier.copy(userEntity, user, null);
+            return user;
         } catch (Exception e) {
             logger.error("从Redis获取用户信息失败", e);
             return null;
