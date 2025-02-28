@@ -187,13 +187,17 @@ public class UserServiceImpl implements UserService {
                 return null;
             }
             UserEntity userEntity =  objectMapper.readValue(userJson, UserEntity.class);
-            BeanCopier copier = BeanCopier.create(UserEntity.class, User.class, false);
-            User user = new User();
-            copier.copy(userEntity, user, null);
-            return user;
+            return convert_user(userEntity);
         } catch (Exception e) {
             logger.error("从Redis获取用户信息失败", e);
             return null;
         }
+    }
+
+    private User convert_user(UserEntity userEntity) {
+        BeanCopier copier = BeanCopier.create(UserEntity.class, User.class, false);
+        User user = new User();
+        copier.copy(userEntity, user, null);
+        return user;
     }
 } 
