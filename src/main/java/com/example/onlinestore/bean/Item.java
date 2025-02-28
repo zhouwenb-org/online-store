@@ -11,6 +11,7 @@ public class Item implements Serializable {
     private String name;
     private String description;
     private String image;
+    private String secondareyName;
 
     public Long getId() {
         return id;
