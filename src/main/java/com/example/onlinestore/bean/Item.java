@@ -11,6 +11,7 @@ public class Item implements Serializable {
     private String name;
     private String description;
     private String image;
+    private Long skuId;
     private String secondareyName;
     private String pingJia;
 
@@ -68,5 +69,13 @@ public class Item implements Serializable {
 
     public void setPingJia(String pingJia) {
         this.pingJia = pingJia;
+    }
+
+    public Long getSkuId() {
+        return skuId;
+    }
+
+    public void setSkuId(Long skuId) {
+        this.skuId = skuId;
     }
 }

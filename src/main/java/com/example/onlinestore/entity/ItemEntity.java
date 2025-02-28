@@ -2,6 +2,7 @@ package com.example.onlinestore.entity;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 // 商品表
 public class ItemEntity implements Serializable {
@@ -11,9 +12,12 @@ public class ItemEntity implements Serializable {
     private Long id;
     private Long categoryId;
     private String name;
+    private String secondaryName;
     private String description;
     private String image;
-    private String skuId;
+    private Long skuId;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Long getId() {
         return id;
@@ -55,11 +59,35 @@ public class ItemEntity implements Serializable {
         this.image = image;
     }
 
-    public String getSkuId() {
+    public Long getSkuId() {
         return skuId;
     }
 
-    public void setSkuId(String skuId) {
+    public void setSkuId(Long skuId) {
         this.skuId = skuId;
+    }
+
+    public String getSecondaryName() {
+        return secondaryName;
+    }
+
+    public void setSecondaryName(String secondaryName) {
+        this.secondaryName = secondaryName;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
