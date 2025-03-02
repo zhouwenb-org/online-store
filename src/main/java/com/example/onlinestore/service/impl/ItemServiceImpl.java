@@ -29,4 +29,13 @@ public class ItemServiceImpl extends CommonItemService{
         entity.setSkuId(skuId);
         return entity;
     }
+
+    protected ItemEntity convertToItemEntity(Item item) {
+        ItemEntity entity = new ItemEntity();
+        entity.setName(item.getName());
+        entity.setDescription(item.getDescription());
+        entity.setImage(item.getImage());
+        entity.setSkuId(item.getSkuId());
+        return entity;
+    }
 }
