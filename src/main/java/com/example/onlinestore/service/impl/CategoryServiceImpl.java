@@ -27,8 +27,8 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryMapper categoryMapper;
 
     @Override
-    public Category isRouteCategory(Long categoryId) {
-        return null;
+    public boolean isRouteCategory(Long categoryId) {
+        return categoryId == Category.ROOT_CATEGORY_PARENT_ID;
     }
 
     private void loadCategory() {
