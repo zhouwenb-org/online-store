@@ -3,10 +3,13 @@ package com.example.onlinestore.bean;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public class Category implements Serializable {
     @Serial
     private static final long serialVersionUID = -4454913370248394676L;
+
+    public static final Long ROOT_CATEGORY_PARENT_ID = 0L;
 
     // 类目ID
     private Long id;
@@ -24,7 +27,7 @@ public class Category implements Serializable {
     private Boolean visible;
 
     // 子类目
-    private List<Category> children;
+    private Set<Long> children;
 
     private Boolean isLeaf;
 
@@ -68,11 +71,11 @@ public class Category implements Serializable {
         this.visible = visible;
     }
 
-    public List<Category> getChildren() {
+    public Set<Long> getChildren() {
         return children;
     }
 
-    public void setChildren(List<Category> children) {
+    public void setChildren(Set<Long> children) {
         this.children = children;
     }
 
