@@ -2,10 +2,11 @@ package com.example.onlinestore.bean;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 public class Item implements Serializable {
     @Serial
-    private static final long serialVersionUID = 8328093958488219105L;
+    private static final long serialVersionUID = 8328093958488219106L;
     private Long id;
     private Long categoryId;
     private String name;
@@ -14,6 +15,7 @@ public class Item implements Serializable {
     private Long skuId;
     private String secondareyName;
     private String pingJia;
+    private Map<String, Object> extraProperties;
 
     public Long getId() {
         return id;
@@ -77,5 +79,13 @@ public class Item implements Serializable {
 
     public void setSkuId(Long skuId) {
         this.skuId = skuId;
+    }
+
+    public Map<String, Object> getExtraProperties() {
+        return extraProperties;
+    }
+
+    public void setExtraProperties(Map<String, Object> extraProperties) {
+        this.extraProperties = extraProperties;
     }
 }
