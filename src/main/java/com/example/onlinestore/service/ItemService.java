@@ -5,4 +5,5 @@ import com.example.onlinestore.entity.ItemEntity;
 
 public interface ItemService {
     void addItem(String userId, Item item);
+    Item getItemById(long itemId);
 }

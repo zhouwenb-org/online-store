@@ -19,6 +19,12 @@ public class ItemServiceImpl extends CommonItemService{
 
     }
 
+    @Override
+    public Item getItemById(long itemId) {
+        ItemEntity itemEntity = itemMapper.findById(itemId);
+        return convertToItem(itemEntity);
+    }
+
 
     private ItemEntity buildItemEntity(String userId, String name, String description, String image, String secondaryName, String pingJia, Long skuId, Map<String, Map<String, String>> itemAttributes, Map<String, Map<String, String>> itemExtensions) {
         ItemEntity entity = new ItemEntity();
