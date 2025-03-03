@@ -5,6 +5,7 @@ import com.example.onlinestore.bean.Category;
 import com.example.onlinestore.entity.CategoryEntity;
 import com.example.onlinestore.mapper.CategoryMapper;
 import com.example.onlinestore.service.CategoryService;
+import jakarta.annotation.PostConstruct;
 import net.sf.cglib.beans.BeanCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Autowired
     private CategoryMapper categoryMapper;
+
+    @PostConstruct
+    private void init(){
+        LOGGER.info("Start to load category. When server startup");
+    }
+
 
     @Override
     public boolean isRouteCategory(Long categoryId) {

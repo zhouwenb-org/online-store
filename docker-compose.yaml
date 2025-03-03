@@ -5,8 +5,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /tmp/docker-compose/config/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
-      - /tmp/docker-compose/data/mysql:/var/lib/mysql
+      - ${HOME}/work/database/docker-compose/config/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+      - ${HOME}/work/database/docker-compose/data/mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: "123456"
       TZ: 'Asia/Shanghai'
