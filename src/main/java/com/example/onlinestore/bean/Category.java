@@ -2,7 +2,6 @@ package com.example.onlinestore.bean;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 public class Category implements Serializable {
@@ -28,6 +27,9 @@ public class Category implements Serializable {
 
     // 子类目
     private Set<Long> children;
+
+    // 排序权重
+    private Integer weight;
 
     private Boolean isLeaf;
 
@@ -85,5 +87,13 @@ public class Category implements Serializable {
 
     public void setLeaf(Boolean leaf) {
         isLeaf = leaf;
+    }
+
+    public Integer getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
     }
 }

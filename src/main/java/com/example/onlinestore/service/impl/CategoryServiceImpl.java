@@ -13,14 +13,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     private static final Object LOAD_LOCKER = new Object();
-    //一级技术栈列表
+    //一级类目列表
     private Set<Long> rootCategories = new HashSet<>();
+
+    private final ScheduledExecutorService scheduleExecutorService = Executors.newScheduledThreadPool(1);
+
+    private final ExecutorService executorService = Executors.newFixedThreadPool(1, new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+                return new Thread(r);
+        }
+    });
+
 
     private Map<Long, Category> categoryMap = Maps.newConcurrentMap();
 
@@ -29,7 +43,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     @PostConstruct
     private void init(){
-        LOGGER.info("Start to load category. When server startup");
+        scheduleExecutorService.scheduleAtFixedRate(this::loadCategory, 3, 1, java.util.concurrent.TimeUnit.MINUTES);
+
+        executorService.submit(() -> {
+            try {
+                LOGGER.info("Start to load category when server startup");
+                loadCategory();
+            } catch (Throwable t) {
+                LOGGER.error("Load category failed", t);
+            }
+        });
+
     }
 
 
@@ -83,11 +107,11 @@ public class CategoryServiceImpl implements CategoryService {
 
                 rootCategories = newRoots;
             } catch (Throwable t) {
-                LOGGER.error("Load stack failed", t);
+                LOGGER.error("Load category failed", t);
             }
         }
 
-        LOGGER.info("Complete to load stack.");
+        LOGGER.info("Complete to load category.");
     }
 
 }

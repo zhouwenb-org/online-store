@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.onlinestore.mapper.UserMapper">
+<mapper namespace="com.example.onlinestore.mapper.CategoryMapper">
 
     <select id="findById" resultType="com.example.onlinestore.entity.CategoryEntity">
         SELECT id, `name`, `description`, `parent_id`, `visible`,`status`, `weight`,created_at, updated_at
