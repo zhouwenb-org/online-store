@@ -1,5 +1,7 @@
 package com.example.onlinestore.entity;
 
+import com.example.onlinestore.enums.AttributeValueType;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,7 +13,7 @@ public class AttributeEntity implements Serializable {
 
     private Long id;
     private String name;
-    private Integer valueType;
+    private AttributeValueType valueType;
     private Integer enable;
     private Long categoryId;
     private LocalDateTime createdAt;
@@ -33,11 +35,11 @@ public class AttributeEntity implements Serializable {
         this.name = name;
     }
 
-    public Integer getValueType() {
+    public AttributeValueType getValueType() {
         return valueType;
     }
 
-    public void setValueType(Integer valueType) {
+    public void setValueType(AttributeValueType valueType) {
         this.valueType = valueType;
     }
 

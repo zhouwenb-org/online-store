@@ -1,4 +1,4 @@
-package com.example.onlinestore.tools;
+package com.example.onlinestore.utils;
 
 import com.example.onlinestore.bean.Item;
 

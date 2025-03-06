@@ -2,6 +2,7 @@ package com.example.onlinestore.service.impl;
 
 import com.alibaba.nacos.shaded.com.google.common.collect.Maps;
 import com.example.onlinestore.bean.Category;
+import com.example.onlinestore.constants.Constants;
 import com.example.onlinestore.entity.CategoryEntity;
 import com.example.onlinestore.mapper.CategoryMapper;
 import com.example.onlinestore.service.CategoryService;
@@ -13,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -27,7 +28,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final ScheduledExecutorService scheduleExecutorService = Executors.newScheduledThreadPool(1);
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(1, Thread::new);
 
     private final Map<Long, Category> categoryMap = Maps.newConcurrentMap();
 
@@ -36,24 +36,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @PostConstruct
     private void init(){
-        scheduleExecutorService.scheduleAtFixedRate(this::loadCategory, 3, 1, java.util.concurrent.TimeUnit.MINUTES);
-
-        executorService.submit(() -> {
-            try {
-                LOGGER.info("Start to load category when server startup");
-                loadCategory();
-            } catch (Throwable t) {
-                LOGGER.error("Load category failed", t);
-            }
-        });
-
+        scheduleExecutorService.scheduleAtFixedRate(this::loadCategory, 0, 1, java.util.concurrent.TimeUnit.MINUTES);
     }
 
 
     @Override
     public boolean isRootCategory(Long categoryId) {
         if (categoryMap.containsKey(categoryId)) {
-            return Category.ROOT_CATEGORY_PARENT_ID.equals(categoryMap.get(categoryId).getParentId());
+            return Objects.equals(categoryMap.get(categoryId).getParentId(), Constants.ROOT_CATEGORY_PARENT_ID);
         }
         return false;
     }
@@ -64,6 +54,14 @@ public class CategoryServiceImpl implements CategoryService {
             return rootCategories.stream().map(categoryMap::get).toList();
         }
         return List.of();
+    }
+
+    @Override
+    public Category getCategoryById(Long categoryId) {
+        if (categoryMap.containsKey(categoryId)) {
+            return categoryMap.get(categoryId);
+        }
+        return null;
     }
 
     private void loadCategory() {
@@ -81,6 +79,11 @@ public class CategoryServiceImpl implements CategoryService {
 
                     Category category = new Category();
                     beanCopier.copy(categoryEntity, category, null);
+
+
+                    Set<Long> Children = allCategories.stream().filter(c -> Objects.equals(c.getParentId(), categoryEntity.getId())).map(CategoryEntity::getId).collect(Collectors.toSet());
+                    category.setChildren(Children);
+
                     categoryMap.put(categoryEntity.getId(), category);
 
                     long parentId = categoryEntity.getParentId();
@@ -97,11 +100,8 @@ public class CategoryServiceImpl implements CategoryService {
                     long key = entry.getKey();
                     if (newCategoryIds.contains(key)) {
                         Category value = entry.getValue();
-                        if (Objects.equals(value.getParentId(), Category.ROOT_CATEGORY_PARENT_ID)) {
+                        if (Objects.equals(value.getParentId(), Constants.ROOT_CATEGORY_PARENT_ID)) {
                             newRoots.add(key);
-                        }
-                        if (!value.getLeaf()) {
-                            value.setChildren(parentCategoryMap.get(key));
                         }
 
                     } else {

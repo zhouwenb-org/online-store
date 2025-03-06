@@ -2,7 +2,6 @@ package com.example.onlinestore.interceptor;
 
 import com.example.onlinestore.bean.User;
 import com.example.onlinestore.context.UserContext;
-import com.example.onlinestore.entity.UserEntity;
 import com.example.onlinestore.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

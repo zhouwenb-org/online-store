@@ -13,7 +13,7 @@ public class Item implements Serializable {
     private String description;
     private String image;
     private Long skuId;
-    private String secondareyName;
+    private String secondaryName;
     private String pingJia;
     private Map<String, Object> extraProperties;
 
@@ -57,12 +57,12 @@ public class Item implements Serializable {
         this.image = image;
     }
 
-    public String getSecondareyName() {
-        return secondareyName;
+    public String getSecondaryName() {
+        return secondaryName;
     }
 
-    public void setSecondareyName(String secondareyName) {
-        this.secondareyName = secondareyName;
+    public void setSecondaryName(String secondaryName) {
+        this.secondaryName = secondaryName;
     }
 
     public String getPingJia() {

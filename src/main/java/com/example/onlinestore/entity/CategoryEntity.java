@@ -1,5 +1,7 @@
 package com.example.onlinestore.entity;
 
+import com.example.onlinestore.enums.CategoryStatusEnum;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;

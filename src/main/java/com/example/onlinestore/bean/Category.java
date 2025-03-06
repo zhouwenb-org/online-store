@@ -1,14 +1,16 @@
 package com.example.onlinestore.bean;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Set;
 
 public class Category implements Serializable {
     @Serial
     private static final long serialVersionUID = -4454913370248394676L;
 
-    public static final Long ROOT_CATEGORY_PARENT_ID = 0L;
 
     // 类目ID
     private Long id;
@@ -31,7 +33,9 @@ public class Category implements Serializable {
     // 排序权重
     private Integer weight;
 
-    private Boolean isLeaf;
+    public boolean hasChildren() {
+        return CollectionUtils.isNotEmpty(children);
+    }
 
     public Long getId() {
         return id;
@@ -81,13 +85,6 @@ public class Category implements Serializable {
         this.children = children;
     }
 
-    public Boolean getLeaf() {
-        return isLeaf;
-    }
-
-    public void setLeaf(Boolean leaf) {
-        isLeaf = leaf;
-    }
 
     public Integer getWeight() {
         return weight;

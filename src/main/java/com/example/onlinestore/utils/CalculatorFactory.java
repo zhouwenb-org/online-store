@@ -1,4 +1,4 @@
-package com.example.onlinestore.tools;
+package com.example.onlinestore.utils;
 
 public class CalculatorFactory {
     private static final CalculatorFactory INSTANCE = new CalculatorFactory();

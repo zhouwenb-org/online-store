@@ -21,6 +21,7 @@
         <commons.lang3.version>3.17.0</commons.lang3.version>
         <cglib.version>3.3.0</cglib.version>
         <mvn.compiler.plugin.version>3.14.0</mvn.compiler.plugin.version>
+        <common.collections.version>3.2.2</common.collections.version>
     </properties>
 
     <dependencyManagement>
@@ -161,6 +162,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons.lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>${common.collections.version}</version>
         </dependency>
     </dependencies>
 
