@@ -2,6 +2,10 @@ package com.example.onlinestore.service;
 
 import com.example.onlinestore.bean.Category;
 
+import java.util.List;
+
 public interface CategoryService {
-    boolean isRouteCategory(Long categoryId);
+    boolean isRootCategory(Long categoryId);
+
+    List<Category> getRootCategories();
 }

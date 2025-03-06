@@ -11,13 +11,16 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.cloud.version>2022.0.4</spring.cloud.version>
-        <spring.boot.version>3.1.5</spring.boot.version>
+        <spring.cloud.version>2024.0.0</spring.cloud.version>
+        <spring.boot.version>3.4.3</spring.boot.version>
         <mybatis.spring.boot.version>3.0.2</mybatis.spring.boot.version>
-        <jedis.version>4.3.1</jedis.version>
-        <mysql.version>8.0.33</mysql.version>
+        <jedis.version>5.2.0</jedis.version>
+        <mysql.version>8.2.0</mysql.version>
         <spring.cloud.alibaba.version>2022.0.0.0</spring.cloud.alibaba.version>
         <nacos.version>2.2.0</nacos.version>
+        <commons.lang3.version>3.17.0</commons.lang3.version>
+        <cglib.version>3.3.0</cglib.version>
+        <mvn.compiler.plugin.version>3.14.0</mvn.compiler.plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -78,8 +81,8 @@
         <!-- MyBatis TypeHandlers -->
         <dependency>
             <groupId>org.mybatis</groupId>
-            <artifactId>mybatis-typehandlers-jsr310</artifactId>
-            <version>1.0.2</version>
+            <artifactId>mybatis-spring</artifactId>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- Nacos Config -->
@@ -151,13 +154,13 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>
-            <version>2.2.2</version>
+            <version>${cglib.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.3.2</version>
+            <version>${commons.lang3.version}</version>
         </dependency>
     </dependencies>
 
@@ -171,7 +174,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>${mvn.compiler.plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>

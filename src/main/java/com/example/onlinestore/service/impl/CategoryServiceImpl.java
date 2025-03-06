@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -28,15 +27,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final ScheduledExecutorService scheduleExecutorService = Executors.newScheduledThreadPool(1);
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(1, new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-                return new Thread(r);
-        }
-    });
+    private final ExecutorService executorService = Executors.newFixedThreadPool(1, Thread::new);
 
-
-    private Map<Long, Category> categoryMap = Maps.newConcurrentMap();
+    private final Map<Long, Category> categoryMap = Maps.newConcurrentMap();
 
     @Autowired
     private CategoryMapper categoryMapper;
@@ -58,8 +51,19 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public boolean isRouteCategory(Long categoryId) {
-        return categoryId == Category.ROOT_CATEGORY_PARENT_ID;
+    public boolean isRootCategory(Long categoryId) {
+        if (categoryMap.containsKey(categoryId)) {
+            return Category.ROOT_CATEGORY_PARENT_ID.equals(categoryMap.get(categoryId).getParentId());
+        }
+        return false;
+    }
+
+    @Override
+    public List<Category> getRootCategories() {
+        if (!rootCategories.isEmpty()) {
+            return rootCategories.stream().map(categoryMap::get).toList();
+        }
+        return List.of();
     }
 
     private void loadCategory() {
@@ -93,7 +97,7 @@ public class CategoryServiceImpl implements CategoryService {
                     long key = entry.getKey();
                     if (newCategoryIds.contains(key)) {
                         Category value = entry.getValue();
-                        if (value.getParentId() == value.ROOT_CATEGORY_PARENT_ID) {
+                        if (Objects.equals(value.getParentId(), Category.ROOT_CATEGORY_PARENT_ID)) {
                             newRoots.add(key);
                         }
                         if (!value.getLeaf()) {
