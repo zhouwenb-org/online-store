@@ -1,6 +1,9 @@
 version: "3"
 services:
   mysql:
+    profiles:
+      - all
+      - without-redis
     image: mysql:latest
     ports:
       - "3306:3306"
@@ -13,6 +16,8 @@ services:
 
 
   redis:
+    profiles:
+      - all
     image: redis:latest
     ports:
       - "6379:6379"
