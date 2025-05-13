@@ -1,12 +1,8 @@
 package com.example.onlinestore.aspect;
 
+import com.example.onlinestore.bean.User;
 import com.example.onlinestore.context.UserContext;
-import com.example.onlinestore.model.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

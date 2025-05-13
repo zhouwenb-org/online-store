@@ -1,7 +1,7 @@
 package com.example.onlinestore.aspect;
 
+import com.example.onlinestore.bean.User;
 import com.example.onlinestore.context.UserContext;
-import com.example.onlinestore.model.User;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
