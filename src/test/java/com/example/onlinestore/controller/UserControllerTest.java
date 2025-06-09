@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -27,6 +28,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.jpa.hibernate.ddl-auto=create-drop"
+})
 @DisplayName("用户控制器测试")
 public class UserControllerTest {
 
@@ -120,9 +126,10 @@ public class UserControllerTest {
             // 执行请求并验证
             mockMvc.perform(get("/api/users")
                     .param("pageSize", "10")
-                    .param("pageNum", "1"))
+                    .param("pageNum", "1")
+                    .header("X-Token", "admin-token"))
                     .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.message").value("系统内部错误"));
         }
     }
-} 
+}    

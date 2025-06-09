@@ -2,6 +2,9 @@ package com.example.onlinestore.service;
 
 import com.example.onlinestore.dto.LoginRequest;
 import com.example.onlinestore.dto.LoginResponse;
+import com.example.onlinestore.dto.PageResponse;
+import com.example.onlinestore.dto.UserPageRequest;
+import com.example.onlinestore.dto.UserVO;
 import com.example.onlinestore.model.User;
 import com.example.onlinestore.mapper.UserMapper;
 import com.example.onlinestore.service.impl.UserServiceImpl;
@@ -19,6 +22,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -249,4 +254,116 @@ public class UserServiceTest {
         verify(valueOperations, never()).set(anyString(), anyString(), anyLong(), any());
         verify(restTemplate).postForObject(eq(USER_SERVICE_BASE_URL + "/auth"), any(), eq(Boolean.class));
     }
-} 
+
+    @Test
+    void testListUsers_Success() {
+        UserPageRequest request = new UserPageRequest();
+        request.setPageNum(1);
+        request.setPageSize(10);
+
+        List<User> mockUsers = createMockUsers(5);
+        when(userMapper.findAllWithPagination(0, 10)).thenReturn(mockUsers);
+        when(userMapper.countTotal()).thenReturn(5L);
+
+        PageResponse<UserVO> result = userService.listUsers(request);
+
+        assertNotNull(result);
+        assertEquals(5, result.getRecords().size());
+        assertEquals(1, result.getPageNum());
+        assertEquals(10, result.getPageSize());
+        assertEquals(5L, result.getTotal());
+
+        verify(userMapper).findAllWithPagination(0, 10);
+        verify(userMapper).countTotal();
+    }
+
+    @Test
+    void testListUsers_EmptyResult() {
+        UserPageRequest request = new UserPageRequest();
+        request.setPageNum(1);
+        request.setPageSize(10);
+
+        when(userMapper.findAllWithPagination(0, 10)).thenReturn(new ArrayList<>());
+        when(userMapper.countTotal()).thenReturn(0L);
+
+        PageResponse<UserVO> result = userService.listUsers(request);
+
+        assertNotNull(result);
+        assertEquals(0, result.getRecords().size());
+        assertEquals(1, result.getPageNum());
+        assertEquals(10, result.getPageSize());
+        assertEquals(0L, result.getTotal());
+
+        verify(userMapper).findAllWithPagination(0, 10);
+        verify(userMapper).countTotal();
+    }
+
+    @Test
+    void testGetUserByToken_Success() throws Exception {
+        String token = "valid-token";
+        String redisKey = "token:" + token;
+        
+        User mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+        mockUser.setToken(token);
+        mockUser.setTokenExpireTime(LocalDateTime.now().plusHours(1));
+        
+        String userJson = "{\"id\":1,\"username\":\"testuser\",\"token\":\"" + token + "\",\"tokenExpireTime\":\"2024-01-01T12:00:00\"}";
+        
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(redisKey)).thenReturn(userJson);
+
+        User result = userService.getUserByToken(token);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("testuser", result.getUsername());
+        assertEquals(token, result.getToken());
+
+        verify(valueOperations).get(redisKey);
+    }
+
+    @Test
+    void testGetUserByToken_NotFound() {
+        String token = "invalid-token";
+        String redisKey = "token:" + token;
+        
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(redisKey)).thenReturn(null);
+
+        User result = userService.getUserByToken(token);
+
+        assertNull(result);
+        verify(valueOperations).get(redisKey);
+    }
+
+    @Test
+    void testGetUserByToken_JsonParseError() {
+        String token = "invalid-json-token";
+        String redisKey = "token:" + token;
+        
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(redisKey)).thenReturn("invalid-json");
+
+        User result = userService.getUserByToken(token);
+
+        assertNull(result);
+        verify(valueOperations).get(redisKey);
+    }
+
+    private List<User> createMockUsers(int count) {
+        List<User> users = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            User user = new User();
+            user.setId((long) i);
+            user.setUsername("user" + i);
+            user.setToken("token" + i);
+            user.setTokenExpireTime(LocalDateTime.now().plusHours(1));
+            user.setCreatedAt(LocalDateTime.now());
+            user.setUpdatedAt(LocalDateTime.now());
+            users.add(user);
+        }
+        return users;
+    }
+}     

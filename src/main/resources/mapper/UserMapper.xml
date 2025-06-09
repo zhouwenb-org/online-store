@@ -16,7 +16,7 @@
         WHERE username = #{username}
     </update>
 
-    <insert id="insertUser" parameterType="com.example.onlinestore.model.User">
+    <insert id="insertUser" parameterType="com.example.onlinestore.model.User" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (username, token, token_expire_time, created_at, updated_at)
         VALUES (#{username}, #{token}, #{tokenExpireTime}, #{createdAt}, #{updatedAt})
     </insert>
@@ -31,4 +31,4 @@
     <select id="countTotal" resultType="long">
         SELECT COUNT(*) FROM users
     </select>
-</mapper> 
+</mapper>  
