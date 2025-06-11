@@ -3,60 +3,64 @@ package com.example.onlinestore.controller;
 import com.example.onlinestore.dto.PageResponse;
 import com.example.onlinestore.dto.UserVO;
 import com.example.onlinestore.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(UserController.class)
 @DisplayName("用户控制器测试")
 public class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private MessageSource messageSource;
+
     @MockBean
     private UserService userService;
 
-    @Autowired
-    private MessageSource messageSource;
-
-    private PageResponse<UserVO> mockResponse;
+    private PageResponse<UserVO> pageResponse;
 
     @BeforeEach
     void setUp() {
         // 准备测试数据
-        UserVO user1 = new UserVO();
-        user1.setId(1L);
-        user1.setUsername("user1");
+        UserVO userVO = new UserVO();
+        userVO.setId(1L);
+        userVO.setUsername("testuser");
+        
+        List<UserVO> users = Arrays.asList(userVO);
+        pageResponse = new PageResponse<>();
+        pageResponse.setRecords(users);
+        pageResponse.setTotal(1);
+        pageResponse.setPageNum(1);
+        pageResponse.setPageSize(10);
+    }
 
-        UserVO user2 = new UserVO();
-        user2.setId(2L);
-        user2.setUsername("user2");
-
-        mockResponse = new PageResponse<>();
-        mockResponse.setRecords(Arrays.asList(user1, user2));
-        mockResponse.setTotal(2);
-        mockResponse.setPageNum(1);
-        mockResponse.setPageSize(10);
+    @AfterEach
+    void tearDown() {
+        // 清理工作（如需要）
     }
 
     @Nested
@@ -66,7 +70,7 @@ public class UserControllerTest {
         @DisplayName("成功获取用户列表")
         void whenListUsers_thenReturnSuccess() throws Exception {
             // 设置 mock 行为
-            when(userService.listUsers(any())).thenReturn(mockResponse);
+            when(userService.listUsers(any())).thenReturn(pageResponse);
 
             // 执行测试
             mockMvc.perform(get("/api/users")
@@ -76,12 +80,10 @@ public class UserControllerTest {
                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.records").isArray())
-                    .andExpect(jsonPath("$.records.length()").value(2))
+                    .andExpect(jsonPath("$.records.length()").value(1))
                     .andExpect(jsonPath("$.records[0].id").value(1))
-                    .andExpect(jsonPath("$.records[0].username").value("user1"))
-                    .andExpect(jsonPath("$.records[1].id").value(2))
-                    .andExpect(jsonPath("$.records[1].username").value("user2"))
-                    .andExpect(jsonPath("$.total").value(2))
+                    .andExpect(jsonPath("$.records[0].username").value("testuser"))
+                    .andExpect(jsonPath("$.total").value(1))
                     .andExpect(jsonPath("$.pageNum").value(1))
                     .andExpect(jsonPath("$.pageSize").value(10));
         }

@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.onlinestore.model
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.example.onlinestore: DEBUG
+    org.springframework.web: DEBUG
+
+admin:
+  auth:
+    username: admin
+    password: password
+
+user:
+  service:
+    base-url: http://localhost:8081
+
+# 国际化配置
+spring.messages:
+  basename: i18n/messages
+  encoding: UTF-8
+  cache-duration: 3600
