@@ -38,7 +38,7 @@ public class ProductController {
     @ValidateParams
     public ResponseEntity<?> createProduct(@RequestBody @Valid CreateProductRequest request) {
         try {
-            logger.debug("开始创建商品，请求参数：{}", request);
+            logger.debug("开始创建商品，请求参数：edit by sanwei:{}", request);
             Product product = productService.createProduct(request);
             logger.debug("商品创建成功：{}", product.getName());
             return ResponseEntity.ok(product);
