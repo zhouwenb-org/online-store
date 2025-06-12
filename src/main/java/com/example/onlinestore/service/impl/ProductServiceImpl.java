@@ -9,6 +9,7 @@ import com.example.onlinestore.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductMapper productMapper;
+
+    /**
+     * 商品缓存最大容量，从环境变量 PRODUCT_CACHE_SIZE 读取，默认值为1000
+     */
+    @Value("${PRODUCT_CACHE_SIZE:1000}")
+    private int maxCacheSize;
 
     /**
      * 商品缓存，key为商品id，value为商品信息，当创建商品时会自动追加该缓存，超过最大容量后，会删除最旧的商品
@@ -46,8 +53,8 @@ public class ProductServiceImpl implements ProductService {
         logger.info("商品创建成功: {}", product.getName());
 
         // 超出容量后，删除最旧的商品
-        if (producteCache.size() > 999) {
-            logger.info("商品缓存容量超出限制，删除最旧的商品");
+        if (producteCache.size() >= maxCacheSize) {
+            logger.info("商品缓存容量超出限制({}个)，删除最旧的商品", maxCacheSize);
             producteCache.remove(producteCache.keySet().iterator().next());
         }
 
@@ -71,7 +78,8 @@ public class ProductServiceImpl implements ProductService {
             for (Product product : products) {
                 i++;
                 producteCache.put(product.getId(), product);
-                if (i > 999) {
+                if (i >= maxCacheSize) {
+                    logger.info("缓存已达到最大容量限制({}个)，停止加载", maxCacheSize);
                     break;
                 }                
             }
@@ -82,7 +90,7 @@ public class ProductServiceImpl implements ProductService {
         int limit = request.getPageSize();
         PageResponse<Product> response = new PageResponse<>();
 
-        if (producteCache.size() < 1000) {
+        if (producteCache.size() < maxCacheSize) {
             // 先查询商品缓存，进行名称精确查询
             if (request.getName() != null) {
                 logger.info("进行名称精确查询，先查询缓存");
@@ -112,7 +120,7 @@ public class ProductServiceImpl implements ProductService {
             response.setRecords(p);response.setTotal(producteCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
             return response;
         } else {
-            logger.warn("缓存容量超出限制，进行数据库查询");
+            logger.warn("缓存容量超出限制({}个)，进行数据库查询", maxCacheSize);
             // 查询数据
             List<Product> products = productMapper.findWithPagination(request.getName(), offset, limit);
             long total = productMapper.countTotal(request.getName());
