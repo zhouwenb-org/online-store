@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product createProduct(CreateProductRequest request) {
-        logger.info("开始创建商品: {}", request.getName());
+        logger.info("开始创建商品: {}:edit by sanwei new new new:", request.getName());
         
         Product product = new Product();
         product.setName(request.getName());
