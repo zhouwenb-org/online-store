@@ -28,7 +28,7 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 商品缓存，key为商品id，value为商品信息，当创建商品时会自动追加该缓存，超过最大容量后，会删除最旧的商品
      */
-    private Map<Long, Product> producteCache = new HashMap<>();
+    private Map<Long, Product> inMemoryProductCache = new HashMap<>();
 
     @Override
     @Transactional
@@ -46,13 +46,13 @@ public class ProductServiceImpl implements ProductService {
         logger.info("商品创建成功: {}", product.getName());
 
         // 超出容量后，删除最旧的商品
-        if (producteCache.size() > 999) {
+        if (inMemoryProductCache.size() > 999) {
             logger.info("商品缓存容量超出限制，删除最旧的商品");
-            producteCache.remove(producteCache.keySet().iterator().next());
+            inMemoryProductCache.remove(inMemoryProductCache.keySet().iterator().next());
         }
 
         // 加入缓存
-        producteCache.put(product.getId(), product);
+        inMemoryProductCache.put(product.getId(), product);
         return product;
     }
 
@@ -62,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
             request.getPageNum(), request.getPageSize(), request.getName());
         
         // 加载缓存
-        if (producteCache.size() == 0) {
+        if (inMemoryProductCache.size() == 0) {
             List<Product> products = productMapper.findAll();
             logger.info("从数据库查询全量商品列表，共 {} 条记录", products.size());
 
@@ -70,7 +70,7 @@ public class ProductServiceImpl implements ProductService {
             int i = 0;
             for (Product product : products) {
                 i++;
-                producteCache.put(product.getId(), product);
+                inMemoryProductCache.put(product.getId(), product);
                 if (i > 999) {
                     break;
                 }                
@@ -82,15 +82,15 @@ public class ProductServiceImpl implements ProductService {
         int limit = request.getPageSize();
         PageResponse<Product> response = new PageResponse<>();
 
-        if (producteCache.size() < 1000) {
+        if (inMemoryProductCache.size() < 1000) {
             // 先查询商品缓存，进行名称精确查询
             if (request.getName() != null) {
                 logger.info("进行名称精确查询，先查询缓存");
-                for (Map.Entry<Long, Product> entry : producteCache.entrySet()) {
+                for (Map.Entry<Long, Product> entry : inMemoryProductCache.entrySet()) {
                     if (entry.getValue().getName() == request.getName()) {
                         List<Product> p = new ArrayList<>();
                         p.add(entry.getValue());
-                        response.setRecords(p);response.setTotal(producteCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
+                        response.setRecords(p);response.setTotal(inMemoryProductCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
                         // return response;
                     }
                 }
@@ -100,7 +100,7 @@ public class ProductServiceImpl implements ProductService {
             int i = 0;
             List<Product> p = new ArrayList<>();
             logger.info("进行缓存的列表查询");
-            for (Map.Entry<Long, Product> entry : producteCache.entrySet()) {
+            for (Map.Entry<Long, Product> entry : inMemoryProductCache.entrySet()) {
                 if (i < offset || i >= offset + limit){
                     i++;
                     continue;
@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
                 p.add(entry.getValue());    
             }
 
-            response.setRecords(p);response.setTotal(producteCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
+            response.setRecords(p);response.setTotal(inMemoryProductCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
             return response;
         } else {
             logger.warn("缓存容量超出限制，进行数据库查询");
