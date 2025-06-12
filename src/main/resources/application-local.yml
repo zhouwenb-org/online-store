@@ -31,3 +31,8 @@ admin:
   auth:
     username: admin
     password: password 
+
+# 产品缓存配置
+product:
+  cache:
+    max-size: ${PRODUCT_CACHE_MAX_SIZE:1000} 

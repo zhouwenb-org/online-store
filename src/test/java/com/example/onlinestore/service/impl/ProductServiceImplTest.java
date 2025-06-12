@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,6 +32,12 @@ class ProductServiceImplTest {
 
     @InjectMocks
     private ProductServiceImpl productService;
+
+    @BeforeEach
+    void setUp() {
+        // 设置缓存大小为默认值1000
+        ReflectionTestUtils.setField(productService, "productCacheMaxSize", 1000);
+    }
 
     @Nested
     class CreateProductTests {
@@ -85,6 +92,31 @@ class ProductServiceImplTest {
 
             assertNotNull(result);
             verify(productMapper).insertProduct(any(Product.class));
+        }
+
+        @Test
+        void testCreateProduct_CacheSizeLimit() {
+            // 设置较小的缓存大小用于测试
+            ReflectionTestUtils.setField(productService, "productCacheMaxSize", 2);
+
+            CreateProductRequest request = new CreateProductRequest();
+            request.setName("Test Product");
+            request.setCategory("Electronics");
+            request.setPrice(new BigDecimal("99.99"));
+
+            doAnswer(invocation -> {
+                Product product = invocation.getArgument(0);
+                product.setId(System.currentTimeMillis()); // 使用时间戳作为ID以确保唯一性
+                return null;
+            }).when(productMapper).insertProduct(any(Product.class));
+
+            // 创建3个产品，超过缓存大小限制
+            for (int i = 0; i < 3; i++) {
+                request.setName("Test Product " + i);
+                productService.createProduct(request);
+            }
+
+            verify(productMapper, times(3)).insertProduct(any(Product.class));
         }
     }
 
@@ -155,10 +187,37 @@ class ProductServiceImplTest {
             request.setPageNum(1);
             request.setPageSize(10);
 
+            // 创建超过配置缓存大小的产品数量
             List<Product> mockProducts = createMockProducts(1001);
             lenient().when(productMapper.findAll()).thenReturn(mockProducts);
             lenient().when(productMapper.findWithPagination(null, 0, 10)).thenReturn(mockProducts.subList(0, 10));
             lenient().when(productMapper.countTotal(null)).thenReturn(1001L);
+
+            PageResponse<Product> result = productService.listProducts(request);
+
+            assertNotNull(result);
+            assertEquals(1, result.getPageNum());
+            assertEquals(10, result.getPageSize());
+
+            verify(productMapper).findAll();
+            verify(productMapper).findWithPagination(null, 0, 10);
+            verify(productMapper).countTotal(null);
+        }
+
+        @Test
+        void testListProducts_ConfigurableCacheSize() {
+            // 设置较小的缓存大小进行测试
+            ReflectionTestUtils.setField(productService, "productCacheMaxSize", 5);
+
+            ProductPageRequest request = new ProductPageRequest();
+            request.setPageNum(1);
+            request.setPageSize(10);
+
+            // 创建超过配置缓存大小的产品数量
+            List<Product> mockProducts = createMockProducts(10);
+            lenient().when(productMapper.findAll()).thenReturn(mockProducts);
+            lenient().when(productMapper.findWithPagination(null, 0, 10)).thenReturn(mockProducts);
+            lenient().when(productMapper.countTotal(null)).thenReturn(10L);
 
             PageResponse<Product> result = productService.listProducts(request);
 
