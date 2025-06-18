@@ -1,7 +1,5 @@
 {
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
+  "snapshot": "snapshot-20250618-24237292-a6d9-438c-9116-248b804f0503",
+  "install": "sudo apt-get update && sudo apt-get install -y net-tools",
   "terminals": []
 }
