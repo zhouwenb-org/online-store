@@ -1,7 +1,9 @@
 package com.example.onlinestore.controller;
 
+import com.example.onlinestore.context.UserContext;
 import com.example.onlinestore.dto.LoginRequest;
 import com.example.onlinestore.dto.LoginResponse;
+import com.example.onlinestore.model.User;
 import com.example.onlinestore.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import java.util.Locale;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -142,6 +145,80 @@ public class AuthControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isInternalServerError())
                     .andExpect(content().string(zhErrorMessage));
+        }
+    }
+
+    @Nested
+    @DisplayName("whoami接口测试")
+    class WhoamiTests {
+        
+        @Test
+        @DisplayName("获取当前用户信息成功")
+        void whenGetCurrentUserSucceeds_thenReturnUserInfo() throws Exception {
+            // 准备测试数据
+            User mockUser = new User();
+            mockUser.setId(1L);
+            mockUser.setUsername("testuser");
+            mockUser.setCreatedAt(LocalDateTime.now().minusDays(1));
+            mockUser.setUpdatedAt(LocalDateTime.now());
+            
+            // 设置UserContext
+            UserContext.setCurrentUser(mockUser);
+            
+            try {
+                // 执行测试
+                mockMvc.perform(get("/api/auth/whoami"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.id").value(1))
+                        .andExpect(jsonPath("$.username").value("testuser"))
+                        .andExpect(jsonPath("$.createdAt").exists())
+                        .andExpect(jsonPath("$.updatedAt").exists());
+            } finally {
+                // 清理UserContext
+                UserContext.clear();
+            }
+        }
+        
+        @Test
+        @DisplayName("未登录用户访问whoami接口")
+        void whenUserNotLoggedIn_thenReturnUnauthorized() throws Exception {
+            // 确保UserContext为空
+            UserContext.clear();
+            
+            String errorMessage = messageSource.getMessage(
+                "error.unauthorized", null, Locale.ENGLISH);
+            
+            // 执行测试
+            mockMvc.perform(get("/api/auth/whoami")
+                    .header("Accept-Language", "en"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().string(errorMessage));
+        }
+        
+        @Test
+        @DisplayName("获取当前用户信息失败 - 系统错误")
+        void whenSystemErrorOccurs_thenReturnInternalServerError() throws Exception {
+            // 设置一个会导致异常的用户（例如，某些字段为null）
+            User mockUser = new User();
+            mockUser.setId(1L);
+            mockUser.setUsername("testuser");
+            // 故意不设置createdAt和updatedAt来模拟异常
+            
+            UserContext.setCurrentUser(mockUser);
+            
+            try {
+                String errorMessage = messageSource.getMessage(
+                    "error.system.internal", null, Locale.ENGLISH);
+                
+                // 执行测试
+                mockMvc.perform(get("/api/auth/whoami")
+                        .header("Accept-Language", "en"))
+                        .andExpect(status().isInternalServerError())
+                        .andExpect(content().string(errorMessage));
+            } finally {
+                // 清理UserContext
+                UserContext.clear();
+            }
         }
     }
 } 
