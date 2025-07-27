@@ -1,5 +1,10 @@
 name: PR Comment Workflow
 
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+  
 on:
   issue_comment:
     types: [created]
@@ -40,6 +45,7 @@ jobs:
       - name: Reply to Comment
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const scriptOutput = '${{ steps.script.outputs.script_output }}';
             await github.rest.issues.createComment({
