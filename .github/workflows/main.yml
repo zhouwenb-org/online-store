@@ -1,0 +1,50 @@
+name: PR Comment Workflow
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  pr-comment:
+    # 只在PR的评论上触发，忽略issue的评论
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      # 检出代码
+      - uses: actions/checkout@v3
+
+      # 获取PR详细信息
+      - name: Get PR Details
+        id: pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pull = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return pull.data;
+
+      # 这里可以运行你的自定义脚本
+      - name: Run Custom Script
+        id: script
+        run: |
+          # 这里放置你要运行的脚本
+          # 例如：
+          echo "Processing comment: ${{ github.event.comment.body }}"
+          # 将脚本的输出保存到输出变量中
+          echo "script_output=Hello from the script!" >> $GITHUB_OUTPUT
+
+      # 回复评论
+      - name: Reply to Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const scriptOutput = '${{ steps.script.outputs.script_output }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `👋 Thanks for your comment!\n\nScript output: ${scriptOutput}`
+            });
