@@ -23,6 +23,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs');
             const pull = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
