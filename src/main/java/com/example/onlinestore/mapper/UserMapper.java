@@ -1,6 +1,6 @@
 package com.example.onlinestore.mapper;
 
-import com.example.onlinestore.model.User;
+import com.example.onlinestore.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -9,15 +9,15 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
     
-    User findByUsername(String username);
+    UserEntity findByUsername(String username);
     
-    int updateUserToken(User user);
+    int updateUserToken(UserEntity user);
 
-    void insertUser(User user);
+    void insertUser(UserEntity user);
     
-    List<User> findAllWithPagination(@Param("offset") int offset, @Param("limit") int limit);
+    List<UserEntity> findAllWithPagination(@Param("offset") int offset, @Param("limit") int limit);
     
     long countTotal();
 
-    List<User> findAll();
+    List<UserEntity> findAll();
 }

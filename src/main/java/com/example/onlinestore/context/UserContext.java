@@ -1,6 +1,7 @@
 package com.example.onlinestore.context;
 
-import com.example.onlinestore.model.User;
+
+import com.example.onlinestore.bean.User;
 
 public class UserContext {
     private static final ThreadLocal<User> currentUser = new ThreadLocal<>();
