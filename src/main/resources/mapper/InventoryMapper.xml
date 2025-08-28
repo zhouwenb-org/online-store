@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.onlinestore.mapper.InventoryMapper">
+
+    <insert id="insertInventory" parameterType="com.example.onlinestore.model.Inventory">
+        INSERT INTO inventories (product_id, current_stock, min_stock, max_stock, created_at, updated_at)
+        VALUES (#{productId}, #{currentStock}, #{minStock}, #{maxStock}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findByProductId" resultType="com.example.onlinestore.model.Inventory">
+        SELECT id, product_id, current_stock, min_stock, max_stock, created_at, updated_at
+        FROM inventories
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="findById" resultType="com.example.onlinestore.model.Inventory">
+        SELECT id, product_id, current_stock, min_stock, max_stock, created_at, updated_at
+        FROM inventories
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateStock">
+        UPDATE inventories
+        SET current_stock = #{newStock}, updated_at = #{updatedAt}
+        WHERE product_id = #{productId}
+    </update>
+
+    <update id="updateInventorySettings">
+        UPDATE inventories
+        <set>
+            <if test="minStock != null">
+                min_stock = #{minStock},
+            </if>
+            <if test="maxStock != null">
+                max_stock = #{maxStock},
+            </if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="findInventoryWithProducts" resultType="com.example.onlinestore.dto.InventoryResponse">
+        SELECT 
+            i.id,
+            i.product_id,
+            p.name AS product_name,
+            p.category,
+            p.price,
+            i.current_stock,
+            i.min_stock,
+            i.max_stock,
+            (i.current_stock &lt;= i.min_stock) AS is_low_stock,
+            i.created_at,
+            i.updated_at
+        FROM inventories i
+        LEFT JOIN products p ON i.product_id = p.id
+        <where>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND p.category = #{category}
+            </if>
+            <if test="lowStockOnly != null and lowStockOnly == true">
+                AND i.current_stock &lt;= i.min_stock
+            </if>
+        </where>
+        ORDER BY i.updated_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countInventory" resultType="long">
+        SELECT COUNT(*)
+        FROM inventories i
+        LEFT JOIN products p ON i.product_id = p.id
+        <where>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND p.category = #{category}
+            </if>
+            <if test="lowStockOnly != null and lowStockOnly == true">
+                AND i.current_stock &lt;= i.min_stock
+            </if>
+        </where>
+    </select>
+
+    <select id="countLowStockProducts" resultType="long">
+        SELECT COUNT(*)
+        FROM inventories
+        WHERE current_stock &lt;= min_stock AND current_stock > 0
+    </select>
+
+    <select id="countOutOfStockProducts" resultType="long">
+        SELECT COUNT(*)
+        FROM inventories
+        WHERE current_stock = 0
+    </select>
+
+    <select id="findAll" resultType="com.example.onlinestore.model.Inventory">
+        SELECT id, product_id, current_stock, min_stock, max_stock, created_at, updated_at
+        FROM inventories
+        ORDER BY updated_at DESC
+    </select>
+
+    <delete id="deleteByProductId">
+        DELETE FROM inventories
+        WHERE product_id = #{productId}
+    </delete>
+</mapper>
