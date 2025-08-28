@@ -2,6 +2,8 @@ package com.example.onlinestore.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
 
 public class ProductPageRequest {
     @Min(value = 1, message = "error.page.number.min")
@@ -12,6 +14,14 @@ public class ProductPageRequest {
     private int pageSize = 10;
 
     private String name;
+    
+    private String category;
+    
+    @DecimalMin(value = "0.0", message = "error.price.min")
+    private BigDecimal minPrice;
+    
+    @DecimalMin(value = "0.0", message = "error.price.min")
+    private BigDecimal maxPrice;
 
     public int getPageNum() {
         return pageNum;
@@ -35,5 +45,29 @@ public class ProductPageRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public BigDecimal getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(BigDecimal minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public BigDecimal getMaxPrice() {
+        return maxPrice;
+    }
+
+    public void setMaxPrice(BigDecimal maxPrice) {
+        this.maxPrice = maxPrice;
     }
 } 

@@ -75,4 +75,46 @@ public class ProductController {
             return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));
         }
     }
+
+    /**
+     * 根据ID获取商品详情
+     * 
+     * @param id 商品ID
+     * @return 商品详情
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+        try {
+            logger.debug("开始根据ID查询商品：{}", id);
+            Product product = productService.getProductById(id);
+            logger.debug("查询到商品：{}", product.getName());
+            return ResponseEntity.ok(product);
+        } catch (IllegalArgumentException e) {
+            logger.warn("查询商品失败：{}", e.getMessage());
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            logger.error("查询商品失败：{}", e.getMessage(), e);
+            String errorMessage = messageSource.getMessage(
+                "error.system.internal", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));
+        }
+    }
+
+    /**
+     * 获取所有商品分类
+     * 
+     * @return 商品分类列表
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<?> getAllCategories() {
+        try {
+            logger.debug("开始查询所有商品分类");
+            return ResponseEntity.ok(productService.getAllCategories());
+        } catch (Exception e) {
+            logger.error("查询商品分类失败：{}", e.getMessage(), e);
+            String errorMessage = messageSource.getMessage(
+                "error.system.internal", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));
+        }
+    }
 } 
