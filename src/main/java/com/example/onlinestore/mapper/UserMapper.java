@@ -20,4 +20,8 @@ public interface UserMapper {
     long countTotal();
 
     List<User> findAll();
+    
+    User findByToken(@Param("token") String token);
+    
+    int clearUserToken(@Param("token") String token);
 }

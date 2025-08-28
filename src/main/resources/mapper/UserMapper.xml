@@ -31,4 +31,24 @@
     <select id="countTotal" resultType="long">
         SELECT COUNT(*) FROM users
     </select>
+
+    <select id="findAll" resultType="com.example.onlinestore.model.User">
+        SELECT id, username, token, token_expire_time, created_at, updated_at
+        FROM users
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findByToken" resultType="com.example.onlinestore.model.User">
+        SELECT id, username, token, token_expire_time, created_at, updated_at 
+        FROM users 
+        WHERE token = #{token} AND token_expire_time > NOW()
+    </select>
+
+    <update id="clearUserToken">
+        UPDATE users 
+        SET token = NULL, 
+            token_expire_time = NULL,
+            updated_at = NOW()
+        WHERE token = #{token}
+    </update>
 </mapper> 
