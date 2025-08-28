@@ -132,4 +132,31 @@ public class ProductServiceImpl implements ProductService {
         logger.info("查询到 {} 个商品分类", categories.size());
         return categories;
     }
+
+    @Override
+    @Transactional
+    public void deleteProductById(Long id) {
+        logger.info("开始删除商品，ID：{}", id);
+        
+        if (id == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        
+        // 先检查商品是否存在
+        Product existingProduct = productMapper.findById(id);
+        if (existingProduct == null) {
+            throw new IllegalArgumentException("商品不存在，ID：" + id);
+        }
+        
+        // 执行删除
+        int deletedRows = productMapper.deleteById(id);
+        if (deletedRows == 0) {
+            throw new RuntimeException("删除商品失败，ID：" + id);
+        }
+        
+        // 从缓存中移除
+        producteCache.remove(id);
+        
+        logger.info("商品删除成功，ID：{}，商品名称：{}", id, existingProduct.getName());
+    }
 } 

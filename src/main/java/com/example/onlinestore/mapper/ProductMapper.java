@@ -27,4 +27,6 @@ public interface ProductMapper {
     Product findById(@Param("id") Long id);
     
     List<String> findAllCategories();
+    
+    int deleteById(@Param("id") Long id);
 } 

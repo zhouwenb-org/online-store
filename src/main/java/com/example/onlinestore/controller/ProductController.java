@@ -16,6 +16,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -112,6 +114,34 @@ public class ProductController {
             return ResponseEntity.ok(productService.getAllCategories());
         } catch (Exception e) {
             logger.error("查询商品分类失败：{}", e.getMessage(), e);
+            String errorMessage = messageSource.getMessage(
+                "error.system.internal", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));
+        }
+    }
+
+    /**
+     * 删除商品
+     * 
+     * @param id 商品ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/{id}")
+    @RequireAdmin
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+        try {
+            logger.debug("开始删除商品，ID：{}", id);
+            productService.deleteProductById(id);
+            logger.debug("商品删除成功，ID：{}", id);
+            
+            String successMessage = messageSource.getMessage(
+                "success.product.deleted", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.ok().body(Map.of("message", successMessage));
+        } catch (IllegalArgumentException e) {
+            logger.warn("删除商品失败：{}", e.getMessage());
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            logger.error("删除商品失败：{}", e.getMessage(), e);
             String errorMessage = messageSource.getMessage(
                 "error.system.internal", null, LocaleContextHolder.getLocale());
             return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));

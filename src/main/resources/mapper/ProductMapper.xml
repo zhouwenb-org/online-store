@@ -64,4 +64,9 @@
         WHERE category IS NOT NULL AND category != ''
         ORDER BY category
     </select>
+
+    <delete id="deleteById">
+        DELETE FROM products
+        WHERE id = #{id}
+    </delete>
 </mapper> 
