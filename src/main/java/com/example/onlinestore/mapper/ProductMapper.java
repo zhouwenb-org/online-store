@@ -29,4 +29,10 @@ public interface ProductMapper {
     List<String> findAllCategories();
     
     int deleteById(@Param("id") Long id);
+    
+    int updateById(@Param("id") Long id, 
+                   @Param("name") String name,
+                   @Param("category") String category, 
+                   @Param("price") java.math.BigDecimal price,
+                   @Param("updatedAt") java.time.LocalDateTime updatedAt);
 } 

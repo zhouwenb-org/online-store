@@ -69,4 +69,21 @@
         DELETE FROM products
         WHERE id = #{id}
     </delete>
+
+    <update id="updateById">
+        UPDATE products
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="category != null and category != ''">
+                category = #{category},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
 </mapper> 

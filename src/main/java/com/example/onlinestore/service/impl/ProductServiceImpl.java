@@ -3,6 +3,7 @@ package com.example.onlinestore.service.impl;
 import com.example.onlinestore.dto.CreateProductRequest;
 import com.example.onlinestore.dto.PageResponse;
 import com.example.onlinestore.dto.ProductPageRequest;
+import com.example.onlinestore.dto.UpdateProductRequest;
 import com.example.onlinestore.mapper.ProductMapper;
 import com.example.onlinestore.model.Product;
 import com.example.onlinestore.service.ProductService;
@@ -158,5 +159,56 @@ public class ProductServiceImpl implements ProductService {
         producteCache.remove(id);
         
         logger.info("商品删除成功，ID：{}，商品名称：{}", id, existingProduct.getName());
+    }
+
+    @Override
+    @Transactional
+    public Product updateProduct(Long id, UpdateProductRequest request) {
+        logger.info("开始更新商品，ID：{}，请求参数：{}", id, request);
+        
+        if (id == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        
+        if (request == null || !request.hasUpdates()) {
+            throw new IllegalArgumentException("更新请求不能为空且至少包含一个待更新字段");
+        }
+        
+        // 检查商品是否存在
+        Product existingProduct = productMapper.findById(id);
+        if (existingProduct == null) {
+            throw new IllegalArgumentException("商品不存在，ID：" + id);
+        }
+        
+        // 执行更新
+        LocalDateTime now = LocalDateTime.now();
+        int updatedRows = productMapper.updateById(
+            id,
+            request.getName(),
+            request.getCategory(),
+            request.getPrice(),
+            now
+        );
+        
+        if (updatedRows == 0) {
+            throw new RuntimeException("更新商品失败，ID：" + id);
+        }
+        
+        // 获取更新后的商品信息
+        Product updatedProduct = productMapper.findById(id);
+        if (updatedProduct == null) {
+            throw new RuntimeException("获取更新后的商品信息失败，ID：" + id);
+        }
+        
+        // 更新缓存
+        if (producteCache.size() < 1000) {
+            producteCache.put(id, updatedProduct);
+        } else {
+            // 如果缓存已满，至少移除旧的缓存项
+            producteCache.remove(id);
+        }
+        
+        logger.info("商品更新成功，ID：{}，商品名称：{}", id, updatedProduct.getName());
+        return updatedProduct;
     }
 } 

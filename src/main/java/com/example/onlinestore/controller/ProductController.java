@@ -5,6 +5,7 @@ import com.example.onlinestore.annotation.ValidateParams;
 import com.example.onlinestore.dto.CreateProductRequest;
 import com.example.onlinestore.dto.ErrorResponse;
 import com.example.onlinestore.dto.ProductPageRequest;
+import com.example.onlinestore.dto.UpdateProductRequest;
 import com.example.onlinestore.model.Product;
 import com.example.onlinestore.service.ProductService;
 import jakarta.validation.Valid;
@@ -114,6 +115,33 @@ public class ProductController {
             return ResponseEntity.ok(productService.getAllCategories());
         } catch (Exception e) {
             logger.error("查询商品分类失败：{}", e.getMessage(), e);
+            String errorMessage = messageSource.getMessage(
+                "error.system.internal", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));
+        }
+    }
+
+    /**
+     * 更新商品
+     * 
+     * @param id 商品ID
+     * @param request 更新商品请求
+     * @return 更新后的商品信息
+     */
+    @PutMapping("/{id}")
+    @RequireAdmin
+    @ValidateParams
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody @Valid UpdateProductRequest request) {
+        try {
+            logger.debug("开始更新商品，ID：{}，请求参数：{}", id, request);
+            Product product = productService.updateProduct(id, request);
+            logger.debug("商品更新成功：{}", product.getName());
+            return ResponseEntity.ok(product);
+        } catch (IllegalArgumentException e) {
+            logger.warn("更新商品失败：{}", e.getMessage());
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            logger.error("更新商品失败：{}", e.getMessage(), e);
             String errorMessage = messageSource.getMessage(
                 "error.system.internal", null, LocaleContextHolder.getLocale());
             return ResponseEntity.internalServerError().body(new ErrorResponse(errorMessage));

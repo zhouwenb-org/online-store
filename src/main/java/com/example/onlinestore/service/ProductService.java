@@ -3,6 +3,7 @@ package com.example.onlinestore.service;
 import com.example.onlinestore.dto.CreateProductRequest;
 import com.example.onlinestore.dto.PageResponse;
 import com.example.onlinestore.dto.ProductPageRequest;
+import com.example.onlinestore.dto.UpdateProductRequest;
 import com.example.onlinestore.model.Product;
 import java.util.List;
 
@@ -12,4 +13,5 @@ public interface ProductService {
     Product getProductById(Long id);
     List<String> getAllCategories();
     void deleteProductById(Long id);
+    Product updateProduct(Long id, UpdateProductRequest request);
 } 
