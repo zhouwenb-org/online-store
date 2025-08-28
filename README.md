@@ -22,6 +22,12 @@ cd online-store
 # 创建数据库
 mysql -u root -p
 CREATE DATABASE online_store DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# 初始化表结构
+mysql -u root -p online_store < src/main/resources/db/schema.sql
+
+# 导入示例数据（可选，包含10个示例商品）
+mysql -u root -p online_store < src/main/resources/db/data.sql
 ```
 
 3. 配置应用
@@ -44,6 +50,8 @@ mvn spring-boot:run
 - **📖 完整API文档**: [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
 - **⚡ 快速参考**: [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
 - **📊 测试覆盖率报告**: [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md)
+- **🗄️ 数据库设计总结**: [DATABASE_DESIGN_SUMMARY.md](DATABASE_DESIGN_SUMMARY.md)
+- **📋 数据库文档**: [src/main/resources/db/README.md](src/main/resources/db/README.md)
 - **🧪 Postman集合**: [OnlineStore_API.postman_collection.json](OnlineStore_API.postman_collection.json)
 
 ## 🏗️ 系统架构
@@ -87,7 +95,10 @@ src/
 │   └── OnlineStoreApplication.java  # 启动类
 ├── main/resources/
 │   ├── mapper/              # MyBatis XML映射文件
-│   ├── db/schema.sql        # 数据库表结构
+│   ├── db/                  # 数据库相关文件
+│   │   ├── schema.sql       # 数据库表结构 (9个表, 企业级设计)
+│   │   ├── data.sql         # 初始化数据 (104条示例记录)
+│   │   └── README.md        # 数据库设计文档
 │   ├── i18n/                # 国际化资源文件
 │   └── application.yml      # 应用配置
 └── test/                    # 测试代码 (15个测试类, 260+测试用例)
