@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.onlinestore.mapper.InventoryRecordMapper">
+
+    <insert id="insertInventoryRecord" parameterType="com.example.onlinestore.model.InventoryRecord">
+        INSERT INTO inventory_records (product_id, operation_type, quantity, before_stock, after_stock, reason, operator_id, operated_at)
+        VALUES (#{productId}, #{operationType}, #{quantity}, #{beforeStock}, #{afterStock}, #{reason}, #{operatorId}, #{operatedAt})
+    </insert>
+
+    <select id="findByProductId" resultType="com.example.onlinestore.model.InventoryRecord">
+        SELECT id, product_id, operation_type, quantity, before_stock, after_stock, reason, operator_id, operated_at
+        FROM inventory_records
+        WHERE product_id = #{productId}
+        ORDER BY operated_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="findWithPagination" resultType="com.example.onlinestore.model.InventoryRecord">
+        SELECT 
+            ir.id,
+            ir.product_id,
+            ir.operation_type,
+            ir.quantity,
+            ir.before_stock,
+            ir.after_stock,
+            ir.reason,
+            ir.operator_id,
+            ir.operated_at
+        FROM inventory_records ir
+        <if test="productName != null and productName != ''">
+            LEFT JOIN products p ON ir.product_id = p.id
+        </if>
+        <where>
+            <if test="productId != null">
+                AND ir.product_id = #{productId}
+            </if>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+            <if test="operationType != null and operationType != ''">
+                AND ir.operation_type = #{operationType}
+            </if>
+            <if test="operatorId != null">
+                AND ir.operator_id = #{operatorId}
+            </if>
+        </where>
+        ORDER BY ir.operated_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countTotal" resultType="long">
+        SELECT COUNT(*)
+        FROM inventory_records ir
+        <if test="productName != null and productName != ''">
+            LEFT JOIN products p ON ir.product_id = p.id
+        </if>
+        <where>
+            <if test="productId != null">
+                AND ir.product_id = #{productId}
+            </if>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+            <if test="operationType != null and operationType != ''">
+                AND ir.operation_type = #{operationType}
+            </if>
+            <if test="operatorId != null">
+                AND ir.operator_id = #{operatorId}
+            </if>
+        </where>
+    </select>
+
+    <select id="findRecentByProductId" resultType="com.example.onlinestore.model.InventoryRecord">
+        SELECT id, product_id, operation_type, quantity, before_stock, after_stock, reason, operator_id, operated_at
+        FROM inventory_records
+        WHERE product_id = #{productId}
+        ORDER BY operated_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findByOperatorId" resultType="com.example.onlinestore.model.InventoryRecord">
+        SELECT id, product_id, operation_type, quantity, before_stock, after_stock, reason, operator_id, operated_at
+        FROM inventory_records
+        WHERE operator_id = #{operatorId}
+        ORDER BY operated_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="findAll" resultType="com.example.onlinestore.model.InventoryRecord">
+        SELECT id, product_id, operation_type, quantity, before_stock, after_stock, reason, operator_id, operated_at
+        FROM inventory_records
+        ORDER BY operated_at DESC
+    </select>
+</mapper>

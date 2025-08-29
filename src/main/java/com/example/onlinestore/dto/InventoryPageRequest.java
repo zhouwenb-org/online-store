@@ -2,10 +2,8 @@ package com.example.onlinestore.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.DecimalMin;
-import java.math.BigDecimal;
 
-public class ProductPageRequest {
+public class InventoryPageRequest {
     @Min(value = 1, message = "error.page.number.min")
     private int pageNum = 1;
 
@@ -13,15 +11,9 @@ public class ProductPageRequest {
     @Max(value = 100, message = "error.page.size.max")
     private int pageSize = 10;
 
-    private String name;
-    
+    private String productName;
     private String category;
-    
-    @DecimalMin(value = "0.0", message = "error.price.min")
-    private BigDecimal minPrice;
-    
-    @DecimalMin(value = "0.0", message = "error.price.min")
-    private BigDecimal maxPrice;
+    private Boolean lowStockOnly = false;
 
     public int getPageNum() {
         return pageNum;
@@ -39,12 +31,12 @@ public class ProductPageRequest {
         this.pageSize = pageSize;
     }
 
-    public String getName() {
-        return name;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public String getCategory() {
@@ -55,19 +47,22 @@ public class ProductPageRequest {
         this.category = category;
     }
 
-    public BigDecimal getMinPrice() {
-        return minPrice;
+    public Boolean getLowStockOnly() {
+        return lowStockOnly;
     }
 
-    public void setMinPrice(BigDecimal minPrice) {
-        this.minPrice = minPrice;
+    public void setLowStockOnly(Boolean lowStockOnly) {
+        this.lowStockOnly = lowStockOnly;
     }
 
-    public BigDecimal getMaxPrice() {
-        return maxPrice;
+    @Override
+    public String toString() {
+        return "InventoryPageRequest{" +
+                "pageNum=" + pageNum +
+                ", pageSize=" + pageSize +
+                ", productName='" + productName + '\'' +
+                ", category='" + category + '\'' +
+                ", lowStockOnly=" + lowStockOnly +
+                '}';
     }
-
-    public void setMaxPrice(BigDecimal maxPrice) {
-        this.maxPrice = maxPrice;
-    }
-} 
+}

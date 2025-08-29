@@ -13,6 +13,15 @@
             <if test="name != null and name != ''">
                 AND name LIKE CONCAT('%', #{name}, '%')
             </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="minPrice != null">
+                AND price >= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND price &lt;= #{maxPrice}
+            </if>
         </where>
         ORDER BY created_at DESC
         LIMIT #{offset}, #{limit}
@@ -25,6 +34,15 @@
             <if test="name != null and name != ''">
                 AND name LIKE CONCAT('%', #{name}, '%')
             </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="minPrice != null">
+                AND price >= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND price &lt;= #{maxPrice}
+            </if>
         </where>
     </select>
 
@@ -33,4 +51,39 @@
         FROM products
         ORDER BY created_at DESC
     </select>
+
+    <select id="findById" resultType="com.example.onlinestore.model.Product">
+        SELECT id, name, category, price, created_at, updated_at
+        FROM products
+        WHERE id = #{id}
+    </select>
+
+    <select id="findAllCategories" resultType="string">
+        SELECT DISTINCT category
+        FROM products
+        WHERE category IS NOT NULL AND category != ''
+        ORDER BY category
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM products
+        WHERE id = #{id}
+    </delete>
+
+    <update id="updateById">
+        UPDATE products
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="category != null and category != ''">
+                category = #{category},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
 </mapper> 

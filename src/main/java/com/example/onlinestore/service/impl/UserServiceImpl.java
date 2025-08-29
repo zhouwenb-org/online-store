@@ -190,4 +190,47 @@ public class UserServiceImpl implements UserService {
             return null;
         }
     }
+
+    @Override
+    @Transactional
+    public void logout(String token) {
+        logger.info("开始执行登出操作，token: {}", token);
+        
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Token不能为空");
+        }
+        
+        // 验证token是否存在且有效
+        User user = userMapper.findByToken(token);
+        if (user == null) {
+            logger.warn("尝试登出无效或已过期的token: {}", token);
+            throw new IllegalArgumentException(messageSource.getMessage(
+                "error.invalid.token", null, LocaleContextHolder.getLocale()));
+        }
+        
+        try {
+            // 清除数据库中的token
+            int updatedRows = userMapper.clearUserToken(token);
+            if (updatedRows == 0) {
+                logger.warn("清除数据库token失败，token: {}", token);
+                throw new RuntimeException("登出失败");
+            }
+            
+            // 清除Redis中的token
+            String redisKey = TOKEN_PREFIX + token;
+            Boolean deleted = redisTemplate.delete(redisKey);
+            if (Boolean.TRUE.equals(deleted)) {
+                logger.info("成功清除Redis中的token: {}", token);
+            } else {
+                logger.warn("Redis中不存在该token或清除失败: {}", token);
+                // 不抛异常，因为数据库已经清除成功
+            }
+            
+            logger.info("用户 {} 登出成功", user.getUsername());
+            
+        } catch (Exception e) {
+            logger.error("登出过程中发生异常，token: {}", token, e);
+            throw new RuntimeException("登出失败: " + e.getMessage());
+        }
+    }
 } 

@@ -3,6 +3,7 @@ package com.example.onlinestore.service.impl;
 import com.example.onlinestore.dto.CreateProductRequest;
 import com.example.onlinestore.dto.PageResponse;
 import com.example.onlinestore.dto.ProductPageRequest;
+import com.example.onlinestore.dto.UpdateProductRequest;
 import com.example.onlinestore.mapper.ProductMapper;
 import com.example.onlinestore.model.Product;
 import com.example.onlinestore.service.ProductService;
@@ -58,75 +59,156 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public PageResponse<Product> listProducts(ProductPageRequest request) {
-        logger.info("开始查询商品列表，页码：{}，每页大小：{}，商品名称：{}", 
-            request.getPageNum(), request.getPageSize(), request.getName());
+        logger.info("开始查询商品列表，页码：{}，每页大小：{}，商品名称：{}，分类：{}，价格区间：{}-{}", 
+            request.getPageNum(), request.getPageSize(), request.getName(), 
+            request.getCategory(), request.getMinPrice(), request.getMaxPrice());
         
-        // 加载缓存
-        if (producteCache.size() == 0) {
-            List<Product> products = productMapper.findAll();
-            logger.info("从数据库查询全量商品列表，共 {} 条记录", products.size());
-
-            // 更新缓存
-            int i = 0;
-            for (Product product : products) {
-                i++;
-                producteCache.put(product.getId(), product);
-                if (i > 999) {
-                    break;
-                }                
-            }
-        }
-
         // 计算分页参数
         int offset = (request.getPageNum() - 1) * request.getPageSize();
         int limit = request.getPageSize();
+        
+        // 直接使用数据库查询，支持更复杂的条件
+        List<Product> products = productMapper.findWithPagination(
+            request.getName(), 
+            request.getCategory(),
+            request.getMinPrice(),
+            request.getMaxPrice(),
+            offset, 
+            limit
+        );
+        
+        long total = productMapper.countTotal(
+            request.getName(),
+            request.getCategory(),
+            request.getMinPrice(),
+            request.getMaxPrice()
+        );
+
+        logger.info("查询到 {} 条商品记录，总数：{}", products.size(), total);
+
+        // 构建响应
         PageResponse<Product> response = new PageResponse<>();
-
-        if (producteCache.size() < 1000) {
-            // 先查询商品缓存，进行名称精确查询
-            if (request.getName() != null) {
-                logger.info("进行名称精确查询，先查询缓存");
-                for (Map.Entry<Long, Product> entry : producteCache.entrySet()) {
-                    if (entry.getValue().getName() == request.getName()) {
-                        List<Product> p = new ArrayList<>();
-                        p.add(entry.getValue());
-                        response.setRecords(p);response.setTotal(producteCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
-                        // return response;
-                    }
-                }
-            }
-
-            // 进行缓存的列表查询
-            int i = 0;
-            List<Product> p = new ArrayList<>();
-            logger.info("进行缓存的列表查询");
-            for (Map.Entry<Long, Product> entry : producteCache.entrySet()) {
-                if (i < offset || i >= offset + limit){
-                    i++;
-                    continue;
-                }
-
-                p.add(entry.getValue());    
-            }
-
-            response.setRecords(p);response.setTotal(producteCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
-            return response;
-        } else {
-            logger.warn("缓存容量超出限制，进行数据库查询");
-            // 查询数据
-            List<Product> products = productMapper.findWithPagination(request.getName(), offset, limit);
-            long total = productMapper.countTotal(request.getName());
-
-            logger.info("查询到 {} 条商品记录", products.size());
-
-            // 构建响应
-            response.setRecords(products);
-            response.setTotal(total);
-        }
-
+        response.setRecords(products);
+        response.setTotal(total);
         response.setPageNum(request.getPageNum());
         response.setPageSize(request.getPageSize());
 
         return response;
+    }
+
+    @Override
+    public Product getProductById(Long id) {
+        logger.info("开始根据ID查询商品：{}", id);
+        
+        if (id == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        
+        // 先查缓存
+        Product product = producteCache.get(id);
+        if (product != null) {
+            logger.info("从缓存中找到商品：{}", product.getName());
+            return product;
+        }
+        
+        // 查询数据库
+        product = productMapper.findById(id);
+        if (product == null) {
+            throw new IllegalArgumentException("商品不存在，ID：" + id);
+        }
+        
+        // 更新缓存
+        if (producteCache.size() < 1000) {
+            producteCache.put(id, product);
+        }
+        
+        logger.info("查询到商品：{}", product.getName());
+        return product;
+    }
+
+    @Override
+    public List<String> getAllCategories() {
+        logger.info("开始查询所有商品分类");
+        List<String> categories = productMapper.findAllCategories();
+        logger.info("查询到 {} 个商品分类", categories.size());
+        return categories;
+    }
+
+    @Override
+    @Transactional
+    public void deleteProductById(Long id) {
+        logger.info("开始删除商品，ID：{}", id);
+        
+        if (id == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        
+        // 先检查商品是否存在
+        Product existingProduct = productMapper.findById(id);
+        if (existingProduct == null) {
+            throw new IllegalArgumentException("商品不存在，ID：" + id);
+        }
+        
+        // 执行删除
+        int deletedRows = productMapper.deleteById(id);
+        if (deletedRows == 0) {
+            throw new RuntimeException("删除商品失败，ID：" + id);
+        }
+        
+        // 从缓存中移除
+        producteCache.remove(id);
+        
+        logger.info("商品删除成功，ID：{}，商品名称：{}", id, existingProduct.getName());
+    }
+
+    @Override
+    @Transactional
+    public Product updateProduct(Long id, UpdateProductRequest request) {
+        logger.info("开始更新商品，ID：{}，请求参数：{}", id, request);
+        
+        if (id == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        
+        if (request == null || !request.hasUpdates()) {
+            throw new IllegalArgumentException("更新请求不能为空且至少包含一个待更新字段");
+        }
+        
+        // 检查商品是否存在
+        Product existingProduct = productMapper.findById(id);
+        if (existingProduct == null) {
+            throw new IllegalArgumentException("商品不存在，ID：" + id);
+        }
+        
+        // 执行更新
+        LocalDateTime now = LocalDateTime.now();
+        int updatedRows = productMapper.updateById(
+            id,
+            request.getName(),
+            request.getCategory(),
+            request.getPrice(),
+            now
+        );
+        
+        if (updatedRows == 0) {
+            throw new RuntimeException("更新商品失败，ID：" + id);
+        }
+        
+        // 获取更新后的商品信息
+        Product updatedProduct = productMapper.findById(id);
+        if (updatedProduct == null) {
+            throw new RuntimeException("获取更新后的商品信息失败，ID：" + id);
+        }
+        
+        // 更新缓存
+        if (producteCache.size() < 1000) {
+            producteCache.put(id, updatedProduct);
+        } else {
+            // 如果缓存已满，至少移除旧的缓存项
+            producteCache.remove(id);
+        }
+        
+        logger.info("商品更新成功，ID：{}，商品名称：{}", id, updatedProduct.getName());
+        return updatedProduct;
     }
 } 
