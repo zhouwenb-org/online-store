@@ -14,13 +14,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class ProductServiceImpl implements ProductService {
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    
+    private static final int CACHE_MAX_SIZE = 1000;
+    private static final int CACHE_WARN_SIZE = 999;
 
     @Autowired
     private ProductMapper productMapper;
@@ -28,7 +31,7 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 商品缓存，key为商品id，value为商品信息，当创建商品时会自动追加该缓存，超过最大容量后，会删除最旧的商品
      */
-    private Map<Long, Product> productCache = new HashMap<>();
+    private Map<Long, Product> productCache = new ConcurrentHashMap<>();
 
     @Override
     @Transactional
@@ -46,7 +49,7 @@ public class ProductServiceImpl implements ProductService {
         logger.info("商品创建成功: {}", product.getName());
 
         // 超出容量后，删除最旧的商品
-        if (productCache.size() > 999) {
+        if (productCache.size() > CACHE_WARN_SIZE) {
             logger.info("商品缓存容量超出限制，删除最旧的商品");
             productCache.remove(productCache.keySet().iterator().next());
         }
@@ -61,58 +64,14 @@ public class ProductServiceImpl implements ProductService {
         logger.info("开始查询商品列表，页码：{}，每页大小：{}，商品名称：{}", 
             request.getPageNum(), request.getPageSize(), request.getName());
         
-        // 加载缓存
-        if (productCache.size() == 0) {
-            List<Product> products = productMapper.findAll();
-            logger.info("从数据库查询全量商品列表，共 {} 条记录", products.size());
-
-            // 更新缓存
-            int i = 0;
-            for (Product product : products) {
-                i++;
-                productCache.put(product.getId(), product);
-                if (i > 999) {
-                    break;
-                }                
-            }
-        }
-
         // 计算分页参数
         int offset = (request.getPageNum() - 1) * request.getPageSize();
         int limit = request.getPageSize();
         PageResponse<Product> response = new PageResponse<>();
-
-        if (productCache.size() < 1000) {
-            // 先查询商品缓存，进行名称精确查询
-            if (request.getName() != null) {
-                logger.info("进行名称精确查询，先查询缓存");
-                for (Map.Entry<Long, Product> entry : productCache.entrySet()) {
-                    if (entry.getValue().getName() == request.getName()) {
-                        List<Product> p = new ArrayList<>();
-                        p.add(entry.getValue());
-                        response.setRecords(p);response.setTotal(productCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
-                        // return response;
-                    }
-                }
-            }
-
-            // 进行缓存的列表查询
-            int i = 0;
-            List<Product> p = new ArrayList<>();
-            logger.info("进行缓存的列表查询");
-            for (Map.Entry<Long, Product> entry : productCache.entrySet()) {
-                if (i < offset || i >= offset + limit){
-                    i++;
-                    continue;
-                }
-
-                p.add(entry.getValue());    
-            }
-
-            response.setRecords(p);response.setTotal(productCache.size());response.setPageNum(request.getPageNum());response.setPageSize(request.getPageSize());
-            return response;
-        } else {
-            logger.warn("缓存容量超出限制，进行数据库查询");
+        
+        // 如果缓存已满，直接使用数据库查询
+        if (productCache.size() >= CACHE_MAX_SIZE) {
+            logger.warn("缓存容量超出限制，直接进行数据库查询");
             // 查询数据
             List<Product> products = productMapper.findWithPagination(request.getName(), offset, limit);
             long total = productMapper.countTotal(request.getName());
@@ -122,8 +81,52 @@ public class ProductServiceImpl implements ProductService {
             // 构建响应
             response.setRecords(products);
             response.setTotal(total);
+            response.setPageNum(request.getPageNum());
+            response.setPageSize(request.getPageSize());
+            
+            return response;
         }
 
+        // 如果缓存为空，加载部分数据到缓存
+        if (productCache.isEmpty()) {
+            List<Product> products = productMapper.findWithPagination(null, 0, CACHE_MAX_SIZE);
+            logger.info("缓存为空，从数据库加载前{}条记录到缓存", Math.min(products.size(), CACHE_MAX_SIZE));
+            
+            for (Product product : products) {
+                productCache.put(product.getId(), product);
+            }
+        }
+
+        // 使用缓存进行查询
+        // 先查询商品缓存，进行名称精确查询
+        if (request.getName() != null) {
+            logger.info("进行名称精确查询，先查询缓存");
+            for (Map.Entry<Long, Product> entry : productCache.entrySet()) {
+                if (entry.getValue().getName().equals(request.getName())) {
+                    List<Product> p = new ArrayList<>();
+                    p.add(entry.getValue());
+                    response.setRecords(p);
+                    response.setTotal(productCache.size());
+                    response.setPageNum(request.getPageNum());
+                    response.setPageSize(request.getPageSize());
+                    return response;
+                }
+            }
+        }
+
+        // 进行缓存的列表查询
+        int i = 0;
+        List<Product> p = new ArrayList<>();
+        logger.info("进行缓存的列表查询");
+        for (Map.Entry<Long, Product> entry : productCache.entrySet()) {
+            if (i >= offset && i < offset + limit) {
+                p.add(entry.getValue());
+            }
+            i++;
+        }
+
+        response.setRecords(p);
+        response.setTotal(productCache.size());
         response.setPageNum(request.getPageNum());
         response.setPageSize(request.getPageSize());
 
